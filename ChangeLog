@@ -1,3 +1,6 @@
+version 1.9 - 2009 patrick@collison.ie
+   Now works on OS X, and lives on github. Nothing else changed.
+
 version 1.80Beta5 - 2002.?.?? delius@progsoc.uts.edu.au
    Intercept close() to fix problems with tsocks and 
       kmail 
