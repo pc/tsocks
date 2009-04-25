@@ -1,0 +1,107 @@
+#!/bin/sh
+# Wrapper script for use of the tsocks(8) transparent socksification library
+#
+# There are three forms of usage for this script:
+#
+# /usr/bin/tsocks program [program arguments...]
+#
+# This form sets the users DYLD_INSERT_LIBRARIES environment variable so that tsocks(8) 
+# will be loaded to socksify the application then executes the specified 
+# program (with the provided arguments). The following simple example might 
+# be used to telnet to www.foo.org via a tsocks.conf(5) configured socks server:
+#
+# /usr/bin/tsocks telnet www.foo.org
+#
+# The second form allows for tsocks(8) to be switched on and off for a 
+# session (that is, it adds and removes tsocks from the DYLD_INSERT_LIBRARIES environment
+# variable). This form must be _sourced_ into the user's existing session
+# (and will only work with bourne shell users):
+#
+# . /usr/bin/tsocks on
+# telnet www.foo.org 
+# . /usr/bin/tsocks off
+# 
+# Or
+# 
+# source /usr/bin/tsocks on
+# telnet www.foo.org
+# source /usr/bin/tsocks off
+#
+# The third form creates a new shell with DYLD_INSERT_LIBRARIES set and is achieved
+# simply by running the script with no arguments 
+# 
+# /usr/bin/tsocks
+#
+# When finished the user can simply terminate the shell with 'exit'
+# 
+# This script is originally from the debian tsocks package by 
+# Tamas Szerb <toma@rulez.org>
+
+if [ $# = 0 ] ; then
+   echo "$0: insufficient arguments"
+   exit
+fi
+
+LIBDIR="/lib"
+LIB_NAME="libtsocks"
+SHLIB_EXT="dylib"
+SHLIB="${LIBDIR}/${LIB_NAME}.${SHLIB_EXT}"
+
+function show() {
+    echo "DYLD_FORCE_FLAT_NAMESPACE     = $DYLD_FORCE_FLAT_NAMESPACE"
+    echo "DYLD_INSERT_LIBRARIES         = \"$DYLD_INSERT_LIBRARIES\""
+}
+        
+case "$1" in
+	on)
+		if [ -z "$DYLD_INSERT_LIBRARIES" ]
+			then
+                export DYLD_FORCE_FLAT_NAMESPACE=1
+                echo "Setting DYLD_INSERT_LIBRARIES ..."                
+				export DYLD_INSERT_LIBRARIES="${SHLIB}"
+			else
+                echo "Appending to DYLD_INSERT_LIBRARIES ..."
+				echo $DYLD_INSERT_LIBRARIES | grep -q "${SHLIB}" || \
+				export DYLD_INSERT_LIBRARIES="${SHLIB} $DYLD_INSERT_LIBRARIES"
+		fi
+        show
+	;;
+	off)
+        unset DYLD_FORCE_FLAT_NAMESPACE
+        echo "Removing ${SHLIB} from DYLD_INSERT_LIBRARIES ..."
+		export DYLD_INSERT_LIBRARIES=`echo -n $DYLD_INSERT_LIBRARIES | sed 's#/lib/libtsocks\.dylib *##'`
+		if [ -z "$DYLD_INSERT_LIBRARIES" ]
+			then                   
+				unset DYLD_INSERT_LIBRARIES
+		fi
+        show
+	;;
+	show|sh)
+		show
+	;;
+	-h|-?)
+      echo "$0: Please see tsocks(1) or read comment at top of $0"
+   ;;
+	*)
+		if [ -z "$DYLD_INSERT_LIBRARIES" ]
+		then
+			export DYLD_INSERT_LIBRARIES="${SHLIB}"
+                        export DYLD_FORCE_FLAT_NAMESPACE=1
+		else
+			echo $DYLD_INSERT_LIBRARIES | grep -q "${SHLIB}" || \
+			export DYLD_INSERT_LIBRARIES="${SHLIB} $DYLD_INSERT_LIBRARIES"
+		fi
+
+		if [ $# = 0 ]
+		then
+			${SHELL:-/bin/sh}
+		fi
+
+		if [ $# -gt 0 ]
+		then
+			exec "$@"
+		fi
+	;;
+esac
+
+#EOF
