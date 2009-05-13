@@ -6,10 +6,12 @@ dnl Our default prefix is /usr/ since most people will be using tsocks
 dnl on Linux systems and that /usr/local/ stuff annoys them
 AC_PREFIX_DEFAULT(/usr)
 
-dnl if libdir hasn't been set by the user default it to /lib since
-dnl tsocks needs to be on the root partition if put in the
+dnl if libdir hasn't been set by the user default it to /lib (if it exists),
+dnl since tsocks needs to be on the root partition if put in the
 dnl /etc/ld.so.preload file
-test "$libdir" = "\${exec_prefix}/lib" && libdir="/lib"
+if test -d /lib; then
+  test "$libdir" = "\${exec_prefix}/lib" && libdir="/lib"
+fi
 
 dnl Arguments we allow
 AC_ARG_ENABLE(socksdns,
@@ -374,6 +376,5 @@ AC_TRY_COMPILE(,,
 AC_SUBST(SHLIB_EXT)
 AC_SUBST(LD_PRELOAD)
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([tsocks], [chmod +x tsocks])
 AC_OUTPUT
 
