@@ -1,0 +1,8 @@
+Quick installation instructions for OS X:
+- autoconf
+- ./configure --prefix=/usr
+- make
+- sudo make install
+- sudo vi /usr/bin/tsocks
+- change LIBDIR to /usr/lib
+- create /etc/tsocks.conf. See tsocks.conf.simple.example (will work with just IP changed).
