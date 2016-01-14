@@ -69,7 +69,7 @@ case "$1" in
 	off)
         unset DYLD_FORCE_FLAT_NAMESPACE
         echo "Removing ${SHLIB} from DYLD_INSERT_LIBRARIES ..."
-		export DYLD_INSERT_LIBRARIES=`echo -n $DYLD_INSERT_LIBRARIES | sed 's#/lib/libtsocks\.dylib *##'`
+		export DYLD_INSERT_LIBRARIES=`echo -n $DYLD_INSERT_LIBRARIES | sed "s#${SHLIB//./\\.} *##"`
 		if [ -z "$DYLD_INSERT_LIBRARIES" ]
 			then                   
 				unset DYLD_INSERT_LIBRARIES
